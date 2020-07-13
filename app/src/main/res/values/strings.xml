@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">BluetoothGamepadTest</string>
+    <string name="btnUp">Up</string>
+    <string name="btnLeft">Left</string>
+    <string name="btnRight">Right</string>
+    <string name="btnDown">Down</string>
+    <string name="btnConexao">Conectar</string>
+</resources>
