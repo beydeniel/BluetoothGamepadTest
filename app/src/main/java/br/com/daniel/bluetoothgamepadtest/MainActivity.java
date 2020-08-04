@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -40,7 +42,9 @@ public class MainActivity extends AppCompatActivity {
     BluetoothSocket meuSocket = null;
 
     boolean conexao = false;
+
     UUID MEU_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+
     private static String MAC = null;
 
     @Override
@@ -64,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         btnConexao.setOnClickListener(new View.OnClickListener() {
-            @SuppressLint("SetTextI18n")
             @Override
             public void onClick(View v) {
                 if (conexao) {
@@ -72,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         meuSocket.close();
                         conexao = false;
-                        btnConexao.setText("Desconectar");
+                        btnConexao.setText("Conectar");
                         Toast.makeText(getApplicationContext(), "O Bluetooth foi desconectado.", Toast.LENGTH_LONG).show();
                     } catch (IOException erro) {
                         Toast.makeText(getApplicationContext(), "Ocorreu um erro: " + erro, Toast.LENGTH_LONG).show();
@@ -81,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
                     //conectar
                     Intent abreLista = new Intent(MainActivity.this, ListaDispositivos.class);
                     startActivityForResult(abreLista, SOLICITA_CONEXAO);
+                    conexao = true;
+                    btnConexao.setText("Desconectar");
                 }
             }
         });
@@ -96,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnUp.setOnClickListener(new View.OnClickListener() {
+        btnDown.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (conexao) {
@@ -107,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnUp.setOnClickListener(new View.OnClickListener() {
+        btnLeft.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (conexao) {
@@ -118,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnUp.setOnClickListener(new View.OnClickListener() {
+        btnRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (conexao) {
@@ -153,10 +158,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    @SuppressLint({"SetTextI18n", "MissingSuperCall"})
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
 
             case SOLICITA_ATIVACAO:
@@ -170,55 +174,40 @@ public class MainActivity extends AppCompatActivity {
 
             case SOLICITA_CONEXAO:
                 if (resultCode == Activity.RESULT_OK) {
-                    assert data != null;
-                    MAC = Objects.requireNonNull(data.getExtras()).getString(ListaDispositivos.ENDERECO_MAC);
-//                    Toast.makeText(getApplicationContext(), "Endereço MAC Final: " + MAC, Toast.LENGTH_LONG).show();
+                    MAC = data.getExtras().getString(ListaDispositivos.ENDERECO_MAC);
+
                     meuDevice = meuBluetoothAdapter.getRemoteDevice(MAC);
 
                     try {
                         meuSocket = meuDevice.createRfcommSocketToServiceRecord(MEU_UUID);
+
                         meuSocket.connect();
+
                         conexao = true;
+
                         connectedThread = new ConnectedThread(meuSocket);
                         connectedThread.start();
-                        btnConexao.setText("Desconectar");
-                        Toast.makeText(getApplicationContext(), "Você foi conectado com o endereço MAC: " + MAC, Toast.LENGTH_LONG).show();
+
+                        Toast.makeText(getApplicationContext(), "Você foi conectado com: " + MAC, Toast.LENGTH_LONG).show();
                     } catch (IOException erro) {
                         Toast.makeText(getApplicationContext(), "Ocorreu um erro: " + erro, Toast.LENGTH_LONG).show();
-
                     }
 
                 } else {
                     Toast.makeText(getApplicationContext(), "Falha ao obter o endereço MAC.", Toast.LENGTH_LONG).show();
                 }
         }
-    }
 
-//    public class MyBluetoothService {
-//        private static final String TAG = "MY_APP_DEBUG_TAG";
-//        private Handler handler; // handler that gets info from Bluetooth service
-//
-//        // Defines several constants used when transmitting messages between the
-//        // service and the UI.
-//        private interface MessageConstants {
-//            public static final int MESSAGE_READ = 0;
-//            public static final int MESSAGE_WRITE = 1;
-//            public static final int MESSAGE_TOAST = 2;
-//
-//            // ... (Add other message types here as needed.)
-//        }
+    }
 
     private class ConnectedThread extends Thread {
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
-        private byte[] mmBuffer; // mmBuffer store for the stream
 
         public ConnectedThread(BluetoothSocket socket) {
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
-            // Get the input and output streams; using temp objects because
-            // member streams are final.
             try {
                 tmpIn = socket.getInputStream();
                 tmpOut = socket.getOutputStream();
@@ -230,20 +219,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public void run() {
-            mmBuffer = new byte[1024];
-            int numBytes; // bytes returned from read()
+            byte[] buffer = new byte[1024];
+            int bytes;
 
-            // Keep listening to the InputStream until an exception occurs.
-            while (true) {
-                try {
-//                    // Read from the InputStream.
-                    numBytes = mmInStream.read(mmBuffer);
-                    String dadosBt = new String(mmBuffer, 0, numBytes);
-                    mHandler.obtainMessage(MESSAGE_READ, numBytes, -1, dadosBt).sendToTarget();
-                } catch (IOException e) {
-                    break;
-                }
-            }
+//            while (true) {
+//                try {
+//                    bytes = mmInStream.read(buffer);
+//                    mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
+//                            .sendToTarget();
+//                } catch (IOException e) {
+//                    break;
+//                }
+//            }
         }
 
         public void enviar(String dadosEnviar) {
@@ -255,3 +242,66 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
+
+
+////    public class MyBluetoothService {
+////        private static final String TAG = "MY_APP_DEBUG_TAG";
+////        private Handler handler; // handler that gets info from Bluetooth service
+//
+////        // Defines several constants used when transmitting messages between the
+////        // service and the UI.
+////        private interface MessageConstants {
+////            public static final int MESSAGE_READ = 0;
+////            public static final int MESSAGE_WRITE = 1;
+////            public static final int MESSAGE_TOAST = 2;
+//
+////            // ... (Add other message types here as needed.)
+////        }
+
+//private class ConnectedThread extends Thread {
+//    private final InputStream mmInStream;
+//    private final OutputStream mmOutStream;
+//    private byte[] mmBuffer; // mmBuffer store for the stream
+
+//    public ConnectedThread(BluetoothSocket socket) {
+//        InputStream tmpIn = null;
+//        OutputStream tmpOut = null;
+
+//        // Get the input and output streams; using temp objects because
+//        // member streams are final.
+//        try {
+//            tmpIn = socket.getInputStream();
+//            tmpOut = socket.getOutputStream();
+//        } catch (IOException e) {
+//        }
+
+//        mmInStream = tmpIn;
+//        mmOutStream = tmpOut;
+//    }
+
+//    public void run() {
+//        mmBuffer = new byte[1024];
+//        int numBytes; // bytes returned from read()
+
+//        // Keep listening to the InputStream until an exception occurs.
+//        while (true) {
+//            try {
+////                    // Read from the InputStream.
+//                numBytes = mmInStream.read(mmBuffer);
+//                String dadosBt = new String(mmBuffer, 0, numBytes);
+//                mHandler.obtainMessage(MESSAGE_READ, numBytes, -1, dadosBt).sendToTarget();
+//            } catch (IOException e) {
+//                break;
+//            }
+//        }
+//    }
+
+//    public void enviar(String dadosEnviar) {
+//        byte[] msgBuffer = dadosEnviar.getBytes();
+//        try {
+//            mmOutStream.write(msgBuffer);
+//        } catch (IOException e) {
+//        }
+//    }
+//}
+//}
