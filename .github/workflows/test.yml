@@ -1,0 +1,41 @@
+name: tests
+
+# Runs when push to branch ids-robot
+on:
+  push:
+    branches:
+      - ids-robot
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Python
+      uses: actions/setup-python@v2.3.1
+    - name: Install python dependencies
+      run: pip install --upgrade robotframework robotframework-seleniumlibrary
+    - name: Install Chrome
+      run: |
+        wget --no-verbose -O /tmp/chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_96.0.4664.45-1_amd64.deb \
+        && apt install -y /tmp/chrome.deb \
+        && rm /tmp/chrome.deb
+        google-chrome --version
+    - name: Install Chrome Driver
+      run: |
+        sudo apt-get install unzip
+        sudo apt-get install zip
+        wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/96.0.4664.45/chromedriver_linux64.zip
+        unzip /tmp/chromedriver_linux64.zip -d ./robot
+        cd ./robot
+        CHROME_DRIVER_DIR=`pwd`
+        chromedriver -v
+        cd ..
+        PATH=$PATH:$CHROME_DRIVER_DIR
+    - name: Set Timestamp Variable
+      run: echo "ACTIONS_TIMESTAMP=$(TZ=":America/Sao_Paulo" date '+%Y-%m-%dT%H:%M:%S-03:00')" >> $GITHUB_ENV
+    - name: Upload Test Logs
+      uses: actions/upload-artifact@v2
+      with:
+        name: "$ACTIONS_TIMESTAMP-report"
+        path: ./robot/reports/reports.zip
