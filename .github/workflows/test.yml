@@ -37,5 +37,5 @@ jobs:
     - name: Upload Test Logs
       uses: actions/upload-artifact@v2
       with:
-        name: $GITHUB_ENV-report
+        name: ${{ env.GITHUB_ENV }}-report
         path: ./robot/reports/chromedriver_linux64.zip
