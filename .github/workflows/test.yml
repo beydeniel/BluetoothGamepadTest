@@ -56,7 +56,7 @@ jobs:
         run: |
           cd /usr/local/lib/android/sdk/cmdline-tools/latest/bin
           ./sdkmanager "system-images;android-30;google_apis;x86"
-          flutter doctor --android-licenses
+          yes | flutter doctor --android-licenses
           cd $ANDROID_HOME/tools/bin
           ./avdmanager create avd --force -n test -k "system-images;android-30;google_apis;x86"
           cd $ANDROID_HOME/emulator
