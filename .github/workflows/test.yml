@@ -52,7 +52,6 @@ jobs:
           echo "android - $ANDROID_HOME"
           echo "java - $JAVA_HOME"
           pwd
-          
       - name: Setup Java JDK
         uses: actions/setup-java@v3.0.0
         with:
@@ -65,7 +64,7 @@ jobs:
           yes | flutter doctor --android-licenses
           ./sdkmanager "system-images;android-30;google_apis;x86"
           cd $ANDROID_HOME/tools/bin
-          ./avdmanager create avd --force -n test -k "system-images;android-30;google_apis;x86"
+          echo no | ./avdmanager create avd --force -n test -k "system-images;android-30;google_apis;x86"
           cd $ANDROID_HOME/emulator
           ./emulator @test -skin 480x852
           cd $ANDROID_HOME/platform-tools/
