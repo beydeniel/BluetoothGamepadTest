@@ -65,7 +65,7 @@ jobs:
           yes | flutter doctor --android-licenses
           ./sdkmanager "system-images;android-30;google_apis;x86"
           cd $ANDROID_HOME/tools/bin
-          ./avdmanager create avd -n test -k "system-images;android-30;google_apis;x86"
+          echo "n" | ./avdmanager create avd -n test -k "system-images;android-30;google_apis;x86"
           cd $ANDROID_HOME/emulator
           ./emulator @test -skin 480x852
           cd $ANDROID_HOME/platform-tools/
