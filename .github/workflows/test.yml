@@ -55,6 +55,7 @@ jobs:
       - name: Setup Emulator
         run: |
           cd /usr/local/lib/android/sdk/cmdline-tools/latest/bin
+          yes | flutter doctor --android-licenses
           ./sdkmanager "system-images;android-30;google_apis;x86"
           cd $ANDROID_HOME/tools/bin
           ./avdmanager create avd --force -n test -k "system-images;android-30;google_apis;x86"
