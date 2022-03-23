@@ -52,8 +52,15 @@ jobs:
           echo "android - $ANDROID_HOME"
           echo "java - $JAVA_HOME"
           pwd
+          
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3.0.0
+        with:
+          java-version: 'zulu'
+          distribution: '8'
       - name: Setup Emulator
         run: |
+          echo "java againnn - $JAVA_HOME"
           cd /usr/local/lib/android/sdk/cmdline-tools/latest/bin
           yes | flutter doctor --android-licenses
           ./sdkmanager "system-images;android-30;google_apis;x86"
