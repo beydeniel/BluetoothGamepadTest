@@ -60,6 +60,7 @@ jobs:
       - name: Setup Emulator
         run: |
           echo "java againnn - $JAVA_HOME"
+          sudo apt-get install libaio1 libaio-dev
           cd /usr/local/lib/android/sdk/cmdline-tools/latest/bin
           yes | flutter doctor --android-licenses
           ./sdkmanager "system-images;android-30;google_apis;x86"
