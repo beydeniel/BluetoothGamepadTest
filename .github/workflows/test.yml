@@ -48,7 +48,8 @@ jobs:
           npm install -g appium-doctor
       - name: Download Android SDK
         run: |
-          sudo apt update && sudo apt install android-sdk
+          sudo apt update && sudo apt upgrade
+          sudo apt install android-sdk
           echo "android - $ANDROID_HOME"
           echo "java - $JAVA_HOME"
           pwd
