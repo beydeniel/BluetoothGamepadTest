@@ -56,8 +56,8 @@ jobs:
       - name: Setup Java JDK
         uses: actions/setup-java@v3.0.0
         with:
-          java-version: 'zulu'
-          distribution: '8'
+          java-version: '8'
+          distribution: 'zulu'
       - name: Setup Emulator
         run: |
           echo "java againnn - $JAVA_HOME"
