@@ -6,13 +6,13 @@ name: Flutter Tests
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [app-pipeline-test]
+    branches: main
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   tests-android:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repo content
         uses: actions/checkout@v2 # checkout the repository content to github runner.
@@ -25,16 +25,25 @@ jobs:
       - name: Flutter action
         uses: subosito/flutter-action@v1.5.3
         with:
-          flutter-version: 1.22.6
+          dart-version: 2.16.2
+          flutter-version: 2.10.5
           channel: stable
-#      - name: Build apk
-#        run: |
-#          whereis flutter
-#          flutter clean
-#          flutter pub get
-#          flutter precache
-#          flutter build apk --debug
-#        continue-on-error: true
+#       - name: Build apk
+#         run: |
+#           whereis dev_training_project
+#           pwd
+#           echo "Abaixo o conteudo do diretório"
+#           ls
+#           echo "Entrar na pasta do project"
+#           cd dev_training_project
+#           echo "verifiva se deu certo e lista o conteúdo do diretorio"
+#           pwd
+#           ls
+#           flutter clean
+#           flutter pub get
+#           flutter precache
+#           flutter build apk --flavor dev --debug
+#         continue-on-error: false
       - name: Install python dependencies
         run: |
           pip install robotframework==4.1.2
@@ -48,33 +57,36 @@ jobs:
           npm install -g appium-doctor
       - name: Download Android SDK
         run: |
-          sudo apt update && sudo apt upgrade
-          sudo apt install android-sdk
+          sudo apt update && sudo apt install android-sdk
           echo "android - $ANDROID_HOME"
           echo "java - $JAVA_HOME"
+          java -version
+          echo "TERMINOU DOWNLOAD"
           pwd
-      - name: Setup Java JDK
-        uses: actions/setup-java@v3.0.0
-        with:
-          java-version: '8'
-          distribution: 'zulu'
+      - name: Setup Audio
+        run: |
+          sudo apt-get install -y pulseaudio
       - name: Setup Emulator
         run: |
-          echo "java againnn - $JAVA_HOME"
-          sudo apt-get install libpulse0
           cd /usr/local/lib/android/sdk/cmdline-tools/latest/bin
-          yes | flutter doctor --android-licenses
           ./sdkmanager "system-images;android-30;google_apis;x86"
-          cd $ANDROID_HOME/tools/bin
-          echo cuca beludo
-          no | ./avdmanager create avd -n test -k "system-images;android-30;google_apis;x86"
-          cd $ANDROID_HOME/emulator
-          ./emulator @test -skin 480x852
-          cd $ANDROID_HOME/platform-tools/
-          ./adb devices
-      - name: Start Appium server
-        run: |
-          appium-doctor --android
-          appium
-      - name: Run Robot Tests
-        run: robot main.robot
+          yes | flutter doctor --android-licenses 
+          ./sdkmanager --update 
+          ./avdmanager create avd --force -n test -k "system-images;android-30;google_apis;x86" <<< 'no'
+          pwd
+           cd $ANDROID_HOME/platform-tools/
+           ./adb kill-server
+           ./adb start-server
+           cd $ANDROID_HOME/emulator  
+           ./emulator -list-avds
+            sudo apt-get install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
+           ./emulator @test -gpu host -no-window
+           cd $ANDROID_HOME/platform-tools/
+           ./adb devices
+#       - name: Start Appium server
+#        run: |
+ #         appium-doctor --android
+  #        appium
+    #  - name: Run Robot Tests
+     #   run: robot main.robot
+ 
